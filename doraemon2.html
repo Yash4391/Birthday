@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doraemon Quiz Fun 🎉</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body {
+  font-family: 'Roboto', sans-serif;
+  background: linear-gradient(to right, #4b0000, #800020);
+  color: #fff;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  overflow-x: hidden; /* only horizontal scroll hidden */
+  position: relative;
+}
+
+/* Confetti letters container stays fixed */
+#confettiContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+
+  /* Confetti letters container */
+  #confettiContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .confetti-letter {
+    position: absolute;
+    font-size: 18px;
+    font-weight: bold;
+    pointer-events: none;
+    opacity: 0.8;
+    animation: fall linear infinite;
+  }
+
+  @keyframes fall {
+    0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+  }
+
+  .dora-photo {
+    width: 470px;
+    max-width: 90vw;
+    margin-bottom: 20px;
+    opacity: 0;
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .dialog-box {
+    max-width: 800px;
+    width: 90%;
+    min-height: 140px;
+    background: rgba(0,0,0,0.4);
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    font-size: 1.3rem;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    text-align: left;
+    z-index: 1;
+    position: relative;
+  }
+
+  .dora-label {
+    font-weight: bold;
+    color: #00aaff;
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+    display: block;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    margin-top: 15px;
+    gap: 10px;
+    z-index: 1;
+    position: relative;
+  }
+
+  .options button,
+  #dialogNextBtn,
+  #nextBtn {
+    padding: 10px 20px;
+    border-radius: 15px;
+    border: none;
+    background: #b3003b;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255,0,80,0.5);
+    transition: all 0.3s ease;
+  }
+
+  .options button:hover,
+  #dialogNextBtn:hover,
+  #nextBtn:hover {
+    background: #ff004d;
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255,0,80,0.7);
+  }
+
+  #nextBtn {
+    margin-top: 20px;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    display: none;
+  }
+
+  /* Mute/Unmute button */
+  #muteBtn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 10;
+    background: rgba(0,0,0,0.6);
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Confetti letters container -->
+<div id="confettiContainer"></div>
+
+<!-- Doraemon image -->
+<img id="doraImg" src="https://www.pngplay.com/wp-content/uploads/10/Doraemon-Transparent-File.png" alt="Doraemon waving" class="dora-photo">
+
+<!-- Dialogue box -->
+<div class="dialog-box" role="region" aria-live="polite">
+  <span class="dora-label">Doraemon:</span>
+  <span id="dialogText"></span>
+</div>
+
+<!-- Buttons -->
+<button id="dialogNextBtn" onclick="nextDialogueStep()">Next ➡</button>
+<div class="options" id="optionsContainer"></div>
+<button id="nextBtn" onclick="goNextPage()">Take me to next ➡</button>
+
+<!-- Mute/unmute button -->
+<button id="muteBtn" onclick="toggleMute()">🔊</button>
+
+<!-- Background music -->
+<audio id="bgMusic" loop>
+  <source src="dora2.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+/* ---- Quiz Data ---- */
+const steps = [
+  { type: 'text', text: 'Before we proceed, let’s try to understand each other a little bit.' },
+  { type: 'text', text: 'I’ll ask you a few fun questions — just simple multiple choice. Don’t worry, it’s all for fun!' },
+  { type: 'question', text: 'Which one of these makes you happiest?', options: [
+    { text: 'Reading a good book', reply: 'Ah, a bookworm! You should thank Yash that he made you one' },
+    { text: 'Watching cartoons', reply: 'Haha, cartoons are always fun! I hope you watch me sometimes too 😏' },
+    { text: 'Hanging out with friends', reply: 'Friends time is the best! Just like Nobita and me saving the day together!' },
+    { text: 'Playing video games', reply: 'I see, a gamer! Your boyfriend is a big one btw 😎' }
+  ]},
+  { type: 'question', text: 'If you could have a gadget from me, which would you choose?', options: [
+    { text: 'Anywhere Door', reply: 'Excellent! So you can go and see Yash anytime you want? 😏' },
+    { text: 'Time Machine', reply: 'Time traveler! That’s awesome! I bet Yash would want to go back in time so he could meet you sooner' },
+    { text: 'Take-copter', reply: 'Flying is fun! Yash asked this to me too, says he needs it since he keeps falling for you haha' },
+    { text: 'Memory Bread', reply: 'Smart choice! You would have needed this if you were to be transferred in Lender Review 😂' }
+  ]},
+  { type: 'question', text: 'How do you like to spend your weekends?', options: [
+    { text: 'Relaxing at home', reply: 'Home sweet home! Nobita wishes he could do the same 😴' },
+    { text: 'Going on adventures', reply: 'Adventurer! Careful not to fall into one of my gadgets 😆' },
+    { text: 'Trying out new hobbies', reply: 'Curious and creative! Nobita could learn a thing or two from you!' },
+    { text: 'Sleeping', reply: 'Nap master, just like Nobita after school 😴' }
+  ]},
+  { type: 'question', text: 'Okay Umra, time for a fun one! Yash says you’re…', options: [
+    { text: 'A Skribbl champion 🏆', reply: 'Haha, maybe in an alternate universe where Nobita is better at drawing!' },
+    { text: 'Good enough sometimes 😎', reply: 'Not bad! I expected nothing less than “Hilariously bad” 😏' },
+    { text: 'Hilariously bad 😂', reply: '😂 That’s so cute! Even Nobita would laugh at this!' },
+    { text: 'A secret artist 🎨', reply: 'Ooooh, hidden talent! Just don’t tell Nobita or he’ll get jealous!' }
+  ]}
+];
+
+/* ---- Variables ---- */
+let idx = 0;
+let waitingNext = false;
+
+const doraImg = document.getElementById('doraImg');
+const dialogText = document.getElementById('dialogText');
+const optionsContainer = document.getElementById('optionsContainer');
+const nextBtn = document.getElementById('nextBtn');
+const dialogNextBtn = document.getElementById('dialogNextBtn');
+const bgMusic = document.getElementById('bgMusic');
+const muteBtn = document.getElementById('muteBtn');
+const confettiContainer = document.getElementById('confettiContainer');
+
+/* ---- Start Doraemon Animation ---- */
+doraImg.style.animation = 'bounceIn 0.6s ease forwards';
+
+/* ---- Typewriter Effect ---- */
+function typeWriter(text, element, speed = 28, callback = null) {
+  element.innerHTML = '';
+  text = text.replace(/\n/g, '<br>');
+  let i = 0;
+  function typing() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i);
+      i++;
+      setTimeout(typing, speed);
+    } else if (callback) {
+      callback();
+    }
+  }
+  typing();
+}
+
+/* ---- Show Quiz Step ---- */
+function showStep() {
+  optionsContainer.innerHTML = '';
+  nextBtn.style.display = 'none';
+  dialogNextBtn.style.display = 'none';
+
+  if (idx >= steps.length) {
+    nextBtn.style.display = 'inline-block';
+    return;
+  }
+
+  const step = steps[idx];
+
+  if (step.type === 'text') {
+    typeWriter(step.text, dialogText, 28, () => {
+      dialogNextBtn.style.display = 'inline-block';
+      dialogNextBtn.textContent = 'Next ➡';
+    });
+  } else if (step.type === 'question') {
+    typeWriter(step.text, dialogText, 28, () => {
+      step.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.text;
+        btn.disabled = true;
+        optionsContainer.appendChild(btn);
+
+        setTimeout(() => btn.disabled = false, step.text.length * 28 + 200);
+
+        btn.onclick = () => {
+          waitingNext = true;
+          [...optionsContainer.children].forEach(b => b.disabled = true);
+          typeWriter(opt.reply, dialogText, 28, () => {
+            optionsContainer.innerHTML = '';
+            dialogNextBtn.style.display = 'inline-block';
+            dialogNextBtn.textContent = 'Next Question ➡';
+          });
+        };
+      });
+    });
+  }
+}
+
+/* ---- Next Step ---- */
+function nextDialogueStep() {
+  dialogNextBtn.style.display = 'none';
+  if (waitingNext) waitingNext = false;
+  idx++;
+  showStep();
+}
+
+/* ---- Next Page ---- */
+function goNextPage() {
+  window.location.href = 'doraemon3.html';
+}
+
+/* ---- Background Music ---- */
+function toggleMute() {
+  bgMusic.muted = !bgMusic.muted;
+  muteBtn.textContent = bgMusic.muted ? '🔇' : '🔊';
+}
+
+document.body.addEventListener('click', () => {
+  if (bgMusic.paused) bgMusic.play().catch(()=>{});
+}, { once: true });
+
+/* ---- Confetti Letters ---- */
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789🎉✨💖';
+function createConfettiLetter() {
+  const span = document.createElement('div');
+  span.className = 'confetti-letter';
+  span.textContent = letters.charAt(Math.floor(Math.random() * letters.length));
+  span.style.left = Math.random() * 100 + 'vw';
+  span.style.fontSize = (12 + Math.random() * 20) + 'px';
+  span.style.color = `hsl(${Math.random()*360},100%,70%)`;
+  span.style.animationDuration = (4 + Math.random()*4) + 's';
+  confettiContainer.appendChild(span);
+  setTimeout(() => span.remove(), 8000);
+}
+setInterval(createConfettiLetter, 150);
+
+/* ---- Start Quiz ---- */
+showStep();
+</script>
+</body>
+</html>

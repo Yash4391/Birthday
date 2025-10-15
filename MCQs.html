@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💖 How Well Do You Know Us, Umra?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to right, #800020, #ff004d);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0; /* behind everything */
+    }
+
+    h1 {
+      font-family: 'Great Vibes', cursive;
+      font-size: 3rem;
+      margin-bottom: 40px;
+      color: #ffdde1;
+      position: relative;
+      z-index: 1;
+    }
+
+    .question-box {
+      background: rgba(255,0,77,0.2);
+      padding: 20px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      margin-bottom: 20px;
+      max-width: 700px;
+      position: relative;
+      z-index: 1; /* in front of canvas */
+    }
+
+    .option {
+      display: block;
+      background: rgba(255,255,255,0.1);
+      margin: 10px 0;
+      padding: 10px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .option:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .btn {
+      margin-top: 20px;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      border: none;
+      background: #b3003b;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255,0,80,0.5);
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn:hover {
+      background: #ff004d;
+      box-shadow: 0 0 25px rgba(255,0,80,0.7);
+      transform: scale(1.05);
+    }
+
+    #nextPageBtn {
+      display: none;
+    }
+
+    /* Mute/Unmute Icon */
+    #muteIcon {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 2rem;
+      cursor: pointer;
+      z-index: 10;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+
+    #muteIcon:hover {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="questionCanvas"></canvas>
+
+  <!-- Mute/Unmute Icon -->
+  <div id="muteIcon">🔊</div>
+
+  <h1>💖 How Well Do You Know Us, Umra?</h1>
+
+  <div id="quizContainer" class="question-box">
+    Loading quiz...
+  </div>
+
+  <button id="submitBtn" class="btn" onclick="submitAnswer()">Submit Answer</button>
+  <a id="nextPageBtn" href="doraemon.html" class="btn">Take Me to Next Page 💌</a>
+
+  <!-- Background Music -->
+  <audio id="backgroundMusic" loop>
+    <source src="happy.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    // Quiz logic
+    const quiz = [
+      { question: "Where did we first meet?", options: ["Udupi", "Godzilla's Cave", "Hogwarts", "White House"], correct: ["Udupi"], multiple: false },
+      { question: "Where was our first date?", options: ["Truffles", "Godzilla's home", "Coffe corner in office", "Under a waterfall"], correct: ["Truffles"], multiple: false },
+      { question: "Where do I stay?", options: ["In your heart", "Mumbai", "Narnia", "The fridge"], correct: ["In your heart"], multiple: false },
+      { question: "How much do I love you?", options: ["A lot", "Undescribable", "Slightly", "Only when I’m hungry"], correct: ["Undescribable"], multiple: false },
+      { question: "What do I love about you? (select all that apply)", options: ["Eyes", "Smile", "Voice", "Touch", "Ability to lose at Skribbl"], correct: ["Eyes","Smile","Voice","Touch","Ability to lose at Skribbl"], multiple: true },
+      { question: "Why did I fall for you?", options: ["You seemed nice", "You work really well", "Your typing speed", "The way you talked about Gopi", "It just happened"], correct: ["It just happened"], multiple: false },
+      { question: "What’s my favorite word to describe you?", options: ["Pretty", "Legendary", "Snickerdoodle", "Pizza"], correct: ["Pretty"], multiple: false }
+    ];
+
+    let currentQ = 0;
+    const quizContainer = document.getElementById('quizContainer');
+
+    function loadQuestion() {
+      const q = quiz[currentQ];
+      let html = `<h2>${q.question}</h2>`;
+      q.options.forEach(opt => {
+        if(q.multiple){
+          html += `<label class="option"><input type="checkbox" value="${opt}"> ${opt}</label>`;
+        } else {
+          html += `<label class="option"><input type="radio" name="option" value="${opt}"> ${opt}</label>`;
+        }
+      });
+      quizContainer.innerHTML = html;
+    }
+
+    function submitAnswer() {
+      const q = quiz[currentQ];
+      const inputs = quizContainer.querySelectorAll('input');
+      let selected = [];
+      inputs.forEach(input => { if(input.checked) selected.push(input.value); });
+
+      if(selected.length === 0){ alert("Please select an answer!"); return; }
+
+      const correct = q.correct.sort().toString();
+      const user = selected.sort().toString();
+      if(correct !== user){ alert("Oops! That's not quite right baby. Try again."); return; }
+
+      currentQ++;
+      if(currentQ < quiz.length){ loadQuestion(); }
+      else{
+        quizContainer.innerHTML = "<h2>🎉 Congratulations! You answered all questions correctly!</h2>";
+        document.getElementById('submitBtn').style.display = 'none';
+        document.getElementById('nextPageBtn').style.display = 'inline-block';
+      }
+    }
+
+    loadQuestion();
+
+    // Background music
+    const music = document.getElementById('backgroundMusic');
+    const muteIcon = document.getElementById('muteIcon');
+    let musicStarted = false;
+
+    function startMusic() {
+      if(!musicStarted){
+        music.play().catch(()=>console.log('Autoplay blocked'));
+        musicStarted = true;
+      }
+    }
+
+    window.addEventListener('click', startMusic, { once:true });
+    window.addEventListener('touchstart', startMusic, { once:true });
+
+    muteIcon.addEventListener('click', () => {
+      if(music.muted || music.paused){
+        music.muted = false; music.play(); muteIcon.textContent='🔊';
+      } else {
+        music.muted = true; muteIcon.textContent='🔇';
+      }
+    });
+
+    // Falling multicolor question marks
+    const canvas = document.getElementById('questionCanvas');
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+
+    const qCount = 50;
+    const questions = [];
+    const colors = ['#ff004d','#ffdd00','#00ff99','#00bfff','#ff66ff','#ffffff','#00ff00','#ffff00'];
+
+    function random(min,max){ return Math.random()*(max-min)+min; }
+
+    class QuestionMark {
+      constructor(){
+        this.x = random(0,W);
+        this.y = random(-H,0);
+        this.size = random(30,50);
+        this.speed = random(2,4);
+        this.color = colors[Math.floor(Math.random()*colors.length)];
+      }
+      update(){
+        this.y += this.speed;
+        if(this.y>H){ this.y=random(-50,0); this.x=random(0,W); this.color = colors[Math.floor(Math.random()*colors.length)]; }
+      }
+      draw(){
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.font = `${this.size}px Arial`;
+        ctx.fillText('?', this.x, this.y);
+        ctx.restore();
+      }
+    }
+
+    for(let i=0;i<qCount;i++) questions.push(new QuestionMark());
+
+    function animateQuestions(){
+      ctx.clearRect(0,0,W,H);
+      questions.forEach(q=>{ q.update(); q.draw(); });
+      requestAnimationFrame(animateQuestions);
+    }
+
+    animateQuestions();
+
+    window.addEventListener('resize', () => {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    });
+
+  </script>
+
+</body>
+</html>

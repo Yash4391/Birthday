@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>For My Baby 💖</title>
+<style>
+  :root{
+    --text-color: #ffd6e0;
+    --wine-1: #4c0816;
+    --wine-2: #260007;
+  }
+
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    background: radial-gradient(circle at 10% 10%, #6a0f26 0%, var(--wine-1) 40%, var(--wine-2) 100%);
+    color: var(--text-color);
+    overflow:hidden;
+  }
+
+  /* Layout */
+  .wrap {
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+    box-sizing:border-box;
+    text-align:center;
+  }
+
+  .card {
+    max-width:900px;
+    width:100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+    border-radius:16px;
+    padding:36px 36px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.02);
+  }
+
+  /* Typewriter area */
+  .message {
+    font-size:1.35rem;
+    line-height:1.6;
+    color: var(--text-color);
+    text-align:left;
+    max-width:820px;
+    margin:0 auto;
+    word-wrap:break-word;
+    hyphens:auto;
+    min-height: 240px;
+    white-space: normal;
+    position:relative;
+  }
+
+  /* The container where we insert characters BEFORE the cursor */
+  .text {
+    display:inline-block;
+    text-align:left;
+    vertical-align:top;
+    max-width:100%;
+  }
+
+  /* Cursor lives inside the .text container so it follows typing exactly */
+  .cursor {
+    display:inline-block;
+    width:2px;
+    height:1.05em;
+    background: var(--text-color);
+    margin-left:6px;
+    vertical-align:bottom;
+    animation: blink 1s steps(2, start) infinite;
+  }
+  @keyframes blink { 50% { opacity:0 } }
+
+  /* Top-right sound button (icon only) */
+  .sound-toggle {
+    position:fixed;
+    top:18px;
+    right:18px;
+    background:transparent;
+    border:none;
+    font-size:26px;
+    color:var(--text-color);
+    cursor:pointer;
+    line-height:1;
+    padding:8px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    backdrop-filter: blur(4px);
+  }
+  .sound-toggle:focus{ outline:2px solid rgba(255,214,224,0.12) }
+
+  /* Falling hearts */
+  .heart {
+    position:fixed;
+    pointer-events:none;
+    will-change: transform, opacity;
+    user-select:none;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+    opacity:0.95;
+  }
+  @keyframes fall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity:1 }
+    100% { transform: translateY(120vh) rotate(360deg); opacity:0 }
+  }
+
+  /* Responsive text size */
+  @media (max-width:600px){
+    .message{ font-size:1.05rem; min-height:200px; padding:0 8px }
+    .card { padding:20px; border-radius:12px }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Sound toggle (icon only) -->
+  <button id="soundToggle" class="sound-toggle" aria-label="Toggle sound">🔊</button>
+
+  <div class="wrap">
+  <div class="card">
+    <div class="message" aria-live="polite">
+      <div id="text" class="text"><span id="cursor" class="cursor" aria-hidden="true"></span></div>
+    </div>
+    <div id="nextContainer" style="text-align:center; margin-top:28px;"></div>
+  </div>
+</div>
+
+
+  <!-- background music (loop) -->
+  <audio id="bgMusic" loop preload="auto">
+    <source src="love.mp3" type="audio/mpeg">
+  </audio>
+
+<script>
+/* ---------- Messages in order ---------- */
+const messages = [
+  `I hope you had fun, baby.
+
+Ever since I met you in Bangalore, I haven’t been able to get you out of my head. You’re the prettiest girl I could ever ask for — calm, kind, and such an amazing listener. You make me feel seen, understood, and cared for in ways I didn’t even know I needed.
+
+You make ordinary moments feel special. Your laugh, your little thoughtful things, the way you look at me when we talk — everything about you just feels right. I love how being with you makes even the simplest days feel like something to remember.
+
+Your birthday will always be my favorite day, because that’s the day the world got you — and I got so lucky to have you in mine.
+
+You’re the best, baby. I love you more than words can ever say. ❤️`,
+  `Now onto the next and final part of this journey.`,
+  `Since our fav hobby is reading books, and since you know how big of an author I am.`,
+  `I figured, why not put in some words together to talk about us — to talk about how 2 people from very different worlds came together.`,
+  `To talk about how 2 people who never had a plan to get together, got together in the most satisfying way possible.`,
+  `To talk about how these 2 people make a perfect couple.`,
+  `I figured let's call this book.......`
+];
+
+/* ---------- References ---------- */
+const textContainer = document.getElementById('text');
+const nextContainer = document.getElementById('nextContainer');
+let cursorEl = document.getElementById('cursor');
+let idx = 0;
+let msgIndex = 0;
+let nextButton;
+
+/* ---------- Create centered Next button ---------- */
+function createNextButton() {
+  nextButton = document.createElement('button');
+  nextButton.textContent = (msgIndex === messages.length - 1) ? "Next ➜" : "Next";
+  Object.assign(nextButton.style, {
+    display: "inline-block",
+    padding: "10px 28px",
+    fontSize: "1.05rem",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer",
+    background: "rgba(255,214,224,0.15)",
+    color: "var(--text-color)",
+    backdropFilter: "blur(4px)",
+    transition: "0.3s ease all"
+  });
+  nextButton.onmouseover = () => nextButton.style.background = "rgba(255,214,224,0.3)";
+  nextButton.onmouseout = () => nextButton.style.background = "rgba(255,214,224,0.15)";
+  nextButton.onclick = nextMessage;
+  nextContainer.appendChild(nextButton);
+}
+
+/* ---------- Remove Next button ---------- */
+function removeNextButton() {
+  if (nextButton) {
+    nextButton.remove();
+    nextButton = null;
+  }
+}
+
+/* ---------- Typewriter effect ---------- */
+function typeNext() {
+  const message = messages[msgIndex];
+  if (idx >= message.length) {
+    createNextButton();
+    return;
+  }
+
+  const ch = message[idx];
+  if (ch === '\n') {
+    const br = document.createElement('br');
+    textContainer.insertBefore(br, cursorEl);
+    if (message[idx + 1] === '\n') {
+      const br2 = document.createElement('br');
+      textContainer.insertBefore(br2, cursorEl);
+      idx++;
+    }
+  } else {
+    const tn = document.createTextNode(ch);
+    textContainer.insertBefore(tn, cursorEl);
+  }
+
+  idx++;
+  let delay = 28;
+  if (/[.,:;!?]/.test(ch)) delay = 250;
+  if (ch === ' ') delay = 18;
+
+  setTimeout(typeNext, delay);
+}
+
+/* ---------- When Next clicked ---------- */
+function nextMessage() {
+  removeNextButton();
+  msgIndex++;
+  if (msgIndex < messages.length) {
+    textContainer.innerHTML = '<span id="cursor" class="cursor" aria-hidden="true"></span>';
+    cursorEl = document.getElementById('cursor'); // reselect cursor
+    idx = 0;
+    setTimeout(typeNext, 500);
+  } else {
+    window.location.href = 'book.html';
+  }
+}
+
+/* ---------- Start typing ---------- */
+setTimeout(typeNext, 500);
+
+/* ---------- Hearts ---------- */
+function spawnHeart() {
+  const heart = document.createElement('div');
+  heart.className = 'heart';
+  heart.innerText = '💖';
+  const size = 12 + Math.random() * 36;
+  heart.style.fontSize = size + 'px';
+  heart.style.left = (Math.random() * 100) + 'vw';
+  const duration = 5 + Math.random() * 6;
+  heart.style.animation = `fall ${duration}s linear`;
+  heart.style.top = '-10vh';
+  heart.style.opacity = (0.6 + Math.random() * 0.4).toString();
+  document.body.appendChild(heart);
+  setTimeout(() => heart.remove(), (duration + 0.5) * 1000);
+}
+const heartInterval = setInterval(spawnHeart, 350);
+
+/* ---------- Music controls ---------- */
+const bg = document.getElementById('bgMusic');
+const toggle = document.getElementById('soundToggle');
+let muted = false;
+bg.volume = 0.6;
+bg.play().catch(() => {
+  const startOnInteraction = () => {
+    bg.play().catch(()=>{});
+    window.removeEventListener('click', startOnInteraction);
+    window.removeEventListener('keydown', startOnInteraction);
+    window.removeEventListener('touchstart', startOnInteraction);
+  };
+  window.addEventListener('click', startOnInteraction, { once: true });
+  window.addEventListener('keydown', startOnInteraction, { once: true });
+  window.addEventListener('touchstart', startOnInteraction, { once: true });
+});
+function updateIcon(){ toggle.textContent = muted ? '🔇' : '🔊'; }
+toggle.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  muted = !muted;
+  bg.muted = muted;
+  updateIcon();
+});
+window.addEventListener('click', () => { if(bg.paused){ bg.play().catch(()=>{}); } });
+toggle.addEventListener('keydown', (e)=>{ if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggle.click(); } });
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ clearInterval(heartInterval); }});
+</script>
+
+
+
+</body>
+</html>

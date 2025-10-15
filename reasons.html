@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💌 27 Reasons I Love You, Umra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+  background: linear-gradient(to right, #4b0000, #800020);
+  color: #fff;
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+  overflow-x: hidden; /* only prevent horizontal scroll */
+  overflow-y: auto;   /* allow vertical scroll */
+
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: 'Great Vibes', cursive;
+      font-size: 3rem;
+      margin-bottom: 30px;
+      color: #ffdde1;
+      position: relative;
+      z-index: 1;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      perspective: 1000px;
+    }
+
+    .card-inner {
+      position: relative;
+      width: 100%;
+      min-height: 180px;
+      text-align: center;
+      transition: transform 0.8s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .card-front {
+      background: #b3003b;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .card-back {
+      background: #ff004d;
+      color: #fff;
+      transform: rotateY(180deg);
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    .next-btn-container {
+      text-align: center;
+      margin-top: 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .next-btn {
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      border: none;
+      background: #b3003b;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255,0,80,0.5);
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .next-btn:hover {
+      background: #ff004d;
+      box-shadow: 0 0 25px rgba(255,0,80,0.7);
+      transform: scale(1.05);
+    }
+
+    @media (max-width: 600px) {
+      .card-front, .card-back {
+        min-height: 150px;
+      }
+    }
+
+    /* Mute/unmute icon style */
+    #muteIcon {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 2rem;
+      cursor: pointer;
+      z-index: 10;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+
+    #muteIcon:hover {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="heartsCanvas"></canvas>
+
+  <!-- Mute/Unmute Icon -->
+  <div id="muteIcon">🔊</div>
+
+  <h1>💌 27 Reasons I Love You, Umra</h1>
+
+  <div class="grid" id="reasonsGrid">
+    <!-- Cards inserted by JS -->
+  </div>
+
+  <div class="next-btn-container">
+    <a href="compliment.html" class="next-btn">Take Me to Next Page</a>
+  </div>
+
+  <!-- Background Music -->
+  <audio id="bgMusic" loop>
+    <source src="love.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    // Music & Mute Icon
+    const music = document.getElementById('bgMusic');
+    const muteIcon = document.getElementById('muteIcon');
+    let musicStarted = false;
+
+    function startMusic() {
+      if (!musicStarted) {
+        music.play().catch(() => console.log('Autoplay blocked'));
+        musicStarted = true;
+      }
+    }
+
+    window.addEventListener('click', startMusic, { once: true });
+    window.addEventListener('touchstart', startMusic, { once: true });
+
+    muteIcon.addEventListener('click', () => {
+      if (music.muted || music.paused) {
+        music.muted = false;
+        music.play();
+        muteIcon.textContent = '🔊';
+      } else {
+        music.muted = true;
+        muteIcon.textContent = '🔇';
+      }
+    });
+
+    // 27 Reasons Cards
+    const reasons = [
+      "Your smile — it lights up everything.",
+      "Your beautiful eyes.",
+      "I call you “pretty” all the time, but I mean it every single time.",
+      "Your voice — every word you say, every “good morning,” “baby,” and “I love you” melts my heart.",
+      "You’re genuinely kind and empathetic — you care deeply about everyone, and especially about me.",
+      "How perfectly our vibes match.",
+      "Your warm hands — I never want to let them go.",
+      "Your gorgeous hair (especially with those highlights ✨).",
+      "You always make that extra effort to make me feel loved and valued.",
+      "You’re the one person I can talk to about anything without feeling judged — and I can be completely myself around you.",
+      "You’re the best listener — even if you want to speak, you let me finish first. I find that incredibly adorable.",
+      "You’re my best book buddy 📚.",
+      "The best person to work with, play games with, and tease in front of the team.",
+      "The way you play Skribbl.io (even if you’re adorably bad at it 😆).",
+      "The sound of your notifications on my phone — I can usually tell when it’s you.",
+      "The way you handle situations and tough conversations between us.",
+      "You — an “unexpressive girl” — choosing to open up and express yourself with me.",
+      "How you always seem to know exactly what to say or do (most of the time 😉) to keep me at peace.",
+      "The way you carry yourself in this world — confident, graceful, and inspiring.",
+      "Your sense of humor — the little jokes you make always make my day.",
+      "How you remember tiny details about me, things I don’t even realize I share.",
+      "The way you light up when you talk about things you love.",
+      "How you make even ordinary moments feel special.",
+      "The way you make everyone around you feel comfortable and happy.",
+      "How you make me feel safe, understood, and appreciated every single day.",
+      "How you support me in everything I do, no matter how small or silly.",
+      "The way being with you makes me want to be the best version of myself."
+    ];
+
+    const grid = document.getElementById('reasonsGrid');
+
+    reasons.forEach((reason, index) => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+
+      const cardInner = document.createElement('div');
+      cardInner.classList.add('card-inner');
+
+      const cardFront = document.createElement('div');
+      cardFront.classList.add('card-front');
+      cardFront.textContent = `Reason ${index + 1}`;
+
+      const cardBack = document.createElement('div');
+      cardBack.classList.add('card-back');
+      cardBack.textContent = reason;
+
+      cardInner.appendChild(cardFront);
+      cardInner.appendChild(cardBack);
+      card.appendChild(cardInner);
+
+      card.addEventListener('click', () => {
+        card.classList.add('flipped');
+      });
+
+      grid.appendChild(card);
+    });
+
+    // Hearts animation
+    const canvas = document.getElementById('heartsCanvas');
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+
+    const heartCount = 100;
+    const hearts = [];
+
+    function random(min,max){ return Math.random()*(max-min)+min; }
+
+    class Heart {
+      constructor(){
+        this.x = random(0,W);
+        this.y = random(-H,0);
+        this.size = random(10,25);
+        this.speed = random(1,3);
+        this.angle = random(0,Math.PI*2);
+        this.angularSpeed = random(0.01,0.03);
+        this.color = Math.random() < 0.5 ? '#fff' : '#ccc';
+      }
+      update(){
+        this.y += this.speed;
+        this.angle += this.angularSpeed;
+        if(this.y>H){
+          this.y = random(-50,0);
+          this.x = random(0,W);
+        }
+      }
+      draw(){
+        ctx.save();
+        ctx.translate(this.x,this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        // Draw a heart
+        const topCurveHeight = this.size * 0.3;
+        ctx.moveTo(0, topCurveHeight);
+        ctx.bezierCurveTo(0, 0, -this.size/2, 0, -this.size/2, topCurveHeight);
+        ctx.bezierCurveTo(-this.size/2, this.size/2, 0, this.size, 0, this.size*1.2);
+        ctx.bezierCurveTo(0, this.size, this.size/2, this.size/2, this.size/2, topCurveHeight);
+        ctx.bezierCurveTo(this.size/2, 0, 0, 0, 0, topCurveHeight);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for(let i=0;i<heartCount;i++) hearts.push(new Heart());
+
+    function animateHearts(){
+      ctx.clearRect(0,0,W,H);
+      hearts.forEach(h => { h.update(); h.draw(); });
+      requestAnimationFrame(animateHearts);
+    }
+
+    animateHearts();
+
+    window.addEventListener('resize', () => {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doraemon Surprise 🎉</title>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to right, #4b0000, #800020);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0; /* behind everything */
+    }
+
+    .card {
+      max-width: 800px;
+      margin-bottom: 30px;
+      padding: 20px 30px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      font-size: 1.4rem;
+      line-height: 1.6;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .btn {
+      margin-top: 20px;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      border-radius: 50px;
+      border: none;
+      background: #b3003b;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255,0,80,0.5);
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn:hover {
+      background: #ff004d;
+      box-shadow: 0 0 25px rgba(255,0,80,0.7);
+      transform: scale(1.05);
+    }
+
+    .dora-photo {
+      width: 470px;
+      margin-bottom: 20px;
+      opacity: 0;
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      60% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .dialog-box {
+      max-width: 800px;
+      width: 90%;
+      min-height: 140px;
+      background: rgba(0,0,0,0.4);
+      padding: 20px 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      font-size: 1.3rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      text-align: left;
+      position: relative;
+      z-index: 1;
+    }
+
+    .dora-label {
+      font-weight: bold;
+      color: #00aaff;
+      margin-bottom: 8px;
+      font-size: 1.2rem;
+      display: block;
+    }
+
+    #doraContainer {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Mute/Unmute Icon */
+    #muteIcon {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 2rem;
+      cursor: pointer;
+      z-index: 10;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+
+    #muteIcon:hover {
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="rainCanvas"></canvas>
+
+  <div id="card" class="card"></div>
+
+  <div id="doraContainer">
+    <img id="doraImg" src="https://www.pngplay.com/wp-content/uploads/10/Doraemon-Transparent-File.png" alt="Doraemon" class="dora-photo">
+    <div class="dialog-box">
+      <span class="dora-label">Doraemon:</span>
+      <span id="dialogText"></span>
+    </div>
+  </div>
+
+  <button id="nextBtn" class="btn" onclick="advance()">Next ➡</button>
+
+  <div id="muteIcon">🔊</div>
+  <audio id="music" loop>
+    <source src="dora.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const steps = [
+      { type: 'card', text: 'Congratulations Umra — you got this far, hope it was fun for you.' },
+      { type: 'card', text: 'Now, I arranged a surprise guest for you here.' },
+      { type: 'card', text: 'This guest was really excited to get here for you.' },
+      { type: 'dora', text: 'Hi Umra, Happy Birthday. Yash got to me saying that you really love me and I wanted to come to you for a surprise.' },
+      { type: 'dora', text: "Happy 27, I haven’t really met you but from what Yash says, you are really an incredible person. He loves you a lot that's for sure." },
+      { type: 'dora', text: 'I gave Nobita a toy to play with and snuck out here to meet with you.' },
+      { type: 'dora', text: "Click the button below and let's have some fun together." }
+    ];
+
+    let idx = 0;
+    const card = document.getElementById('card');
+    const nextBtn = document.getElementById('nextBtn');
+    const doraContainer = document.getElementById('doraContainer');
+    const dialogText = document.getElementById('dialogText');
+    const doraImg = document.getElementById('doraImg');
+    const music = document.getElementById('music');
+    const muteIcon = document.getElementById('muteIcon');
+
+    function showCardText(text){
+      card.style.display = 'block';
+      card.classList.remove('show');
+      setTimeout(()=>{
+        card.innerHTML = text;
+        card.classList.add('show');
+      },200);
+    }
+
+    function typeWriter(text, element, speed = 28) {
+      element.innerHTML = "";
+      let i = 0;
+      function typing() {
+        if (i < text.length) {
+          element.innerHTML += text.charAt(i);
+          i++;
+          setTimeout(typing, speed);
+        }
+      }
+      typing();
+    }
+
+    function showDora(text){
+      card.style.display = 'none';
+      doraContainer.style.display = 'flex';
+      doraImg.style.opacity = 0;
+      doraImg.style.animation = 'bounceIn 0.6s ease forwards';
+      typeWriter(text, dialogText, 28);
+
+      // Start music and rain animation
+      music.play().catch(()=>console.log('Autoplay blocked'));
+      animateRain();
+    }
+
+    function advance(){
+      if(idx >= steps.length) return;
+      const step = steps[idx];
+
+      if(step.type === 'card'){
+        showCardText(step.text);
+      } else if(step.type === 'dora'){
+        showDora(step.text);
+      }
+
+      idx++;
+
+      if(idx === steps.length){
+        nextBtn.textContent = 'Take me to next';
+        nextBtn.onclick = () => window.location.href = 'doraemon2.html';
+      }
+    }
+
+    // start with first card
+    showCardText(steps[0].text);
+    idx = 1;
+
+    // Mute/unmute logic
+    muteIcon.addEventListener('click', () => {
+      if(music.muted || music.paused){
+        music.muted = false;
+        music.play();
+        muteIcon.textContent = '🔊';
+      } else {
+        music.muted = true;
+        muteIcon.textContent = '🔇';
+      }
+    });
+
+    // Rain effect
+    const canvas = document.getElementById('rainCanvas');
+    const ctx = canvas.getContext('2d');
+    let W = canvas.width = window.innerWidth;
+    let H = canvas.height = window.innerHeight;
+    const rainCount = 80;
+    const drops = [];
+
+    function random(min,max){ return Math.random()*(max-min)+min; }
+
+    class Drop{
+      constructor(){
+        this.x = random(0,W);
+        this.y = random(-H,0);
+        this.length = random(10,20);
+        this.speed = random(2,5);
+      }
+      update(){
+        this.y += this.speed;
+        if(this.y>H){ this.y=random(-20,0); this.x=random(0,W); }
+      }
+      draw(){
+        ctx.strokeStyle = 'rgba(173,216,230,0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(this.x,this.y);
+        ctx.lineTo(this.x,this.y+this.length);
+        ctx.stroke();
+      }
+    }
+
+    for(let i=0;i<rainCount;i++) drops.push(new Drop());
+
+    function animateRain(){
+      function loop(){
+        ctx.clearRect(0,0,W,H);
+        drops.forEach(d=>{ d.update(); d.draw(); });
+        requestAnimationFrame(loop);
+      }
+      loop();
+    }
+
+    window.addEventListener('resize', () => {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
